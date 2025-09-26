@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { Anime } from '@/lib/types';
 import { useLocalStorage } from '@/hooks/use-local-storage';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -160,7 +161,21 @@ export default function AnimeWatchlist() {
             {filteredAnimeList.length > 0 ? (
               filteredAnimeList.map((anime) => (
                 <TableRow key={anime.id}>
-                  <TableCell className="font-medium">{anime.title}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-14 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                        <Image
+                          src={anime.coverImage || `https://picsum.photos/seed/${anime.id}/100/140`}
+                          alt={anime.title}
+                          width={40}
+                          height={56}
+                          className="w-full h-full object-cover"
+                          data-ai-hint="anime art"
+                        />
+                      </div>
+                      <span>{anime.title}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>{anime.episodes}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(anime.status)}>{anime.status}</Badge>

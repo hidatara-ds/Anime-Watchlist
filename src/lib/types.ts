@@ -7,4 +7,5 @@ export interface Anime {
   status: AnimeStatus;
   rating: number | null;
   notes: string;
+  coverImage?: string; // Optional: stored as a data URL
 }

@@ -39,14 +39,16 @@ const formSchema = z.object({
   status: z.enum(['Watching', 'Completed', 'Plan to Watch', 'Dropped']),
   rating: z.coerce.number().int().min(0).max(10).nullable(),
   notes: z.string().optional(),
+  coverImage: z.string().optional(),
 });
 
 type AnimeFormValues = z.infer<typeof formSchema>;
+type FormSubmitData = Omit<AnimeFormValues, 'id'>;
 
 interface AnimeFormProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSubmit: (data: AnimeFormValues, id?: string) => void;
+  onSubmit: (data: FormSubmitData, id?: string) => void;
   anime?: Anime;
 }
 
@@ -62,9 +64,21 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
       status: anime?.status || 'Plan to Watch',
       rating: anime?.rating ?? 0,
       notes: anime?.notes || '',
+      coverImage: anime?.coverImage || '',
     },
   });
   
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        form.setValue('coverImage', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleFormSubmit = (data: AnimeFormValues) => {
     onSubmit(data, anime?.id);
     onOpenChange(false);
@@ -79,6 +93,7 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
       status: anime?.status || 'Plan to Watch',
       rating: anime?.rating ?? 0,
       notes: anime?.notes || '',
+      coverImage: anime?.coverImage || '',
     });
   }
 
@@ -98,6 +113,19 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
                   <FormLabel>Title</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Attack on Titan" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="coverImage"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cover Image</FormLabel>
+                  <FormControl>
+                    <Input type="file" accept="image/*" onChange={handleFileChange} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
