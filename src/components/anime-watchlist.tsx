@@ -27,6 +27,7 @@ import { Plus, MoreHorizontal } from 'lucide-react';
 import { AnimeForm } from './anime-form';
 import { DeleteAnimeDialog } from './delete-anime-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { TierStats } from './tier-stats';
 
 const initialData: Anime[] = [
     {
@@ -122,6 +123,8 @@ export default function AnimeWatchlist() {
         return 'default';
     }
   };
+  
+  const watchedCount = animeList.filter(anime => anime.status === 'Completed').length;
 
   const filteredAnimeList = animeList.filter((anime) =>
     anime.title.toLowerCase().includes(filter.toLowerCase())
@@ -133,6 +136,10 @@ export default function AnimeWatchlist() {
         <h1 className="text-4xl font-bold font-headline tracking-tight">AnimeLogger</h1>
         <p className="text-muted-foreground">Your personal anime tracking companion.</p>
       </header>
+      
+      <div className="grid gap-4 md:grid-cols-4">
+        <TierStats watchedCount={watchedCount} />
+      </div>
       
       <div className="flex justify-between items-center gap-4">
         <Input
