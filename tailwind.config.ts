@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Roboto', 'sans-serif'],
-        headline: ['Roboto', 'sans-serif'],
+        body: ['Noto Sans JP', 'system-ui', 'sans-serif'],
+        headline: ['Rampart One', 'Noto Sans JP', 'system-ui', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

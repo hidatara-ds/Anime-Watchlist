@@ -133,8 +133,10 @@ export default function AnimeWatchlist() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <header className="text-center space-y-2">
-        <h1 className="text-4xl font-bold font-headline tracking-tight">AnimeLogger</h1>
-        <p className="text-muted-foreground">Your personal anime tracking companion.</p>
+        <h1 className="text-5xl font-bold font-headline tracking-wide bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent drop-shadow-sm">
+          AnimeLogger
+        </h1>
+        <p className="text-muted-foreground text-sm">Your personal anime tracking companion.</p>
       </header>
       
       <div className="grid gap-4 md:grid-cols-4">

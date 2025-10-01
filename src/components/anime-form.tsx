@@ -6,8 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect } from 'react';
 import type { Anime, AnimeStatus } from '@/lib/types';
-import { statusDisplayMap } from '@/lib/types';
-
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -39,11 +37,10 @@ import { Switch } from '@/components/ui/switch';
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   episodes: z.coerce.number().int().min(0, 'Episodes must be at least 0'),
-  status: z.enum(['PLAN', 'WATCHING', 'COMPLETED', 'ON_HOLD', 'DROPPED']),
+  status: z.enum(['Plan to Watch', 'Watching', 'Completed', 'Dropped']),
   rating: z.coerce.number().int().min(0).max(10),
   notes: z.string().optional(),
-  coverUrl: z.string().optional(),
-  favorite: z.boolean().optional(),
+  coverImage: z.string().optional(),
 });
 
 type AnimeFormValues = z.infer<typeof formSchema>;
@@ -52,11 +49,11 @@ type FormSubmitData = Omit<AnimeFormValues, 'id'>;
 interface AnimeFormProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSubmit: (data: FormSubmitData, id?: string) => void;
+  onSubmit: (data: Omit<Anime, 'id'>, id?: string) => void;
   anime?: Anime;
 }
 
-const statusOptions: AnimeStatus[] = ['PLAN', 'WATCHING', 'COMPLETED', 'ON_HOLD', 'DROPPED'];
+const statusOptions: AnimeStatus[] = ['Plan to Watch', 'Watching', 'Completed', 'Dropped'];
 const ratingOptions = Array.from({ length: 11 }, (_, i) => i);
 
 export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, anime }) => {
@@ -65,11 +62,10 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
     defaultValues: {
       title: '',
       episodes: 0,
-      status: 'PLAN',
+      status: 'Plan to Watch',
       rating: 0,
       notes: '',
-      coverUrl: '',
-      favorite: false,
+      coverImage: '',
     },
   });
 
@@ -79,18 +75,25 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
         form.reset({
           title: anime?.title || '',
           episodes: anime?.episodes || 0,
-          status: anime?.status || 'PLAN',
+          status: (anime?.status as AnimeStatus) || 'Plan to Watch',
           rating: anime?.rating ?? 0,
           notes: anime?.notes || '',
-          coverUrl: anime?.coverUrl || '',
-          favorite: anime?.favorite || false,
+          coverImage: anime?.coverImage || '',
         });
       }, 0);
     }
   }, [isOpen, anime, form]);
 
   const handleFormSubmit = (data: AnimeFormValues) => {
-    onSubmit(data, anime?.id);
+    const mapped: Omit<Anime, 'id'> = {
+      title: data.title,
+      episodes: data.episodes,
+      status: data.status,
+      rating: data.rating === 0 ? null : data.rating,
+      notes: data.notes || '',
+      coverImage: data.coverImage || undefined,
+    };
+    onSubmit(mapped, anime?.id);
     onOpenChange(false);
   }
 
@@ -121,7 +124,7 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
             />
             <FormField
               control={form.control}
-              name="coverUrl"
+              name="coverImage"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cover Image URL (optional)</FormLabel>
@@ -164,7 +167,7 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
                       <SelectContent>
                         {statusOptions.map((status) => (
                           <SelectItem key={status} value={status}>
-                            {statusDisplayMap[status]}
+                            {status}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -201,23 +204,7 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="favorite"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                  <div className="space-y-0.5">
-                    <FormLabel>Favorite</FormLabel>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            {/* Removed Favorite toggle to match current Anime type */}
             <FormField
               control={form.control}
               name="notes"
