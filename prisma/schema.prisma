@@ -1,0 +1,29 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Anime {
+  id        String      @id @default(cuid())
+  title     String
+  coverUrl  String?
+  episodes  Int         @default(0)
+  status    AnimeStatus @default(PLAN)
+  rating    Int         @default(0)
+  notes     String?
+  favorite  Boolean     @default(false)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+enum AnimeStatus {
+  PLAN
+  WATCHING
+  COMPLETED
+  ON_HOLD
+  DROPPED
+}

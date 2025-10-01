@@ -4,7 +4,9 @@ import type { FC } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useEffect } from 'react';
 import type { Anime, AnimeStatus } from '@/lib/types';
+import { statusDisplayMap } from '@/lib/types';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -32,14 +34,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  episodes: z.coerce.number().int().min(1, 'Episodes must be at least 1'),
-  status: z.enum(['Watching', 'Completed', 'Plan to Watch', 'Dropped']),
-  rating: z.coerce.number().int().min(0).max(10).nullable(),
+  episodes: z.coerce.number().int().min(0, 'Episodes must be at least 0'),
+  status: z.enum(['PLAN', 'WATCHING', 'COMPLETED', 'ON_HOLD', 'DROPPED']),
+  rating: z.coerce.number().int().min(0).max(10),
   notes: z.string().optional(),
-  coverImage: z.string().optional(),
+  coverUrl: z.string().optional(),
+  favorite: z.boolean().optional(),
 });
 
 type AnimeFormValues = z.infer<typeof formSchema>;
@@ -52,49 +56,42 @@ interface AnimeFormProps {
   anime?: Anime;
 }
 
-const statusOptions: AnimeStatus[] = ['Watching', 'Completed', 'Plan to Watch', 'Dropped'];
-const ratingOptions = Array.from({ length: 11 }, (_, i) => i); // 0-10
+const statusOptions: AnimeStatus[] = ['PLAN', 'WATCHING', 'COMPLETED', 'ON_HOLD', 'DROPPED'];
+const ratingOptions = Array.from({ length: 11 }, (_, i) => i);
 
 export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, anime }) => {
   const form = useForm<AnimeFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: anime?.title || '',
-      episodes: anime?.episodes || 1,
-      status: anime?.status || 'Plan to Watch',
-      rating: anime?.rating ?? 0,
-      notes: anime?.notes || '',
-      coverImage: anime?.coverImage || '',
+      title: '',
+      episodes: 0,
+      status: 'PLAN',
+      rating: 0,
+      notes: '',
+      coverUrl: '',
+      favorite: false,
     },
   });
-  
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        form.setValue('coverImage', reader.result as string);
-      };
-      reader.readAsDataURL(file);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        form.reset({
+          title: anime?.title || '',
+          episodes: anime?.episodes || 0,
+          status: anime?.status || 'PLAN',
+          rating: anime?.rating ?? 0,
+          notes: anime?.notes || '',
+          coverUrl: anime?.coverUrl || '',
+          favorite: anime?.favorite || false,
+        });
+      }, 0);
     }
-  };
+  }, [isOpen, anime, form]);
 
   const handleFormSubmit = (data: AnimeFormValues) => {
     onSubmit(data, anime?.id);
     onOpenChange(false);
-    form.reset();
-  };
-  
-  // Reset form when dialog closes or anime data changes
-  if (isOpen && form.getValues('title') !== (anime?.title || '')) {
-     form.reset({
-      title: anime?.title || '',
-      episodes: anime?.episodes || 1,
-      status: anime?.status || 'Plan to Watch',
-      rating: anime?.rating ?? 0,
-      notes: anime?.notes || '',
-      coverImage: anime?.coverImage || '',
-    });
   }
 
   return (
@@ -112,20 +109,27 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Attack on Titan" {...field} />
+                    <Input 
+                      placeholder="e.g., Attack on Titan" 
+                      autoFocus
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
-              name="coverImage"
+              name="coverUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cover Image</FormLabel>
+                  <FormLabel>Cover Image URL (optional)</FormLabel>
                   <FormControl>
-                    <Input type="file" accept="image/*" onChange={handleFileChange} />
+                    <Input 
+                      placeholder="https://..." 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -145,13 +149,13 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
                   </FormItem>
                 )}
               />
-               <FormField
+              <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
@@ -160,7 +164,7 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
                       <SelectContent>
                         {statusOptions.map((status) => (
                           <SelectItem key={status} value={status}>
-                            {status}
+                            {statusDisplayMap[status]}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -170,36 +174,56 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
                 )}
               />
             </div>
-             <FormField
-                control={form.control}
-                name="rating"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Rating</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(value === null ? null : Number(value))} defaultValue={String(field.value)}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select rating" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {ratingOptions.map((rating) => (
-                          <SelectItem key={rating} value={String(rating)}>
-                            {rating === 0 ? 'Not Rated' : `${rating}/10`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="rating"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rating</FormLabel>
+                  <Select 
+                    onValueChange={(value) => field.onChange(Number(value))} 
+                    value={String(field.value)}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select rating" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {ratingOptions.map((rating) => (
+                        <SelectItem key={rating} value={String(rating)}>
+                          {rating === 0 ? 'Not Rated' : `${rating}/10`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="favorite"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <FormLabel>Favorite</FormLabel>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>Notes (optional)</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Your thoughts on the anime..." {...field} />
                   </FormControl>
@@ -208,7 +232,7 @@ export const AnimeForm: FC<AnimeFormProps> = ({ isOpen, onOpenChange, onSubmit, 
               )}
             />
             <DialogFooter>
-               <DialogClose asChild>
+              <DialogClose asChild>
                 <Button type="button" variant="secondary">Cancel</Button>
               </DialogClose>
               <Button type="submit">{anime ? 'Save Changes' : 'Add Anime'}</Button>
