@@ -130,6 +130,19 @@ export default function AnimeWatchlist() {
     anime.title.toLowerCase().includes(filter.toLowerCase())
   );
 
+  const getSafeImageSrc = (candidate?: string, fallbackId?: string) => {
+    const fallback = `https://picsum.photos/seed/${fallbackId || 'placeholder'}/100/140`;
+    if (!candidate) return fallback;
+    try {
+      // Accept only absolute http(s) URLs
+      const u = new URL(candidate);
+      if (u.protocol === 'http:' || u.protocol === 'https:') return candidate;
+      return fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <header className="text-center space-y-2">
@@ -174,7 +187,7 @@ export default function AnimeWatchlist() {
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-14 rounded-md overflow-hidden bg-muted flex-shrink-0">
                         <Image
-                          src={anime.coverImage || `https://picsum.photos/seed/${anime.id}/100/140`}
+                          src={getSafeImageSrc(anime.coverImage, anime.id)}
                           alt={anime.title}
                           width={40}
                           height={56}
