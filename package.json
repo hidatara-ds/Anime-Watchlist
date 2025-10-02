@@ -6,10 +6,18 @@
     "dev": "next dev --turbopack -p 9002",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
-    "build": "NODE_ENV=production next build",
-    "start": "next start",
+    "build": "prisma generate && NODE_ENV=production next build",
+    "start": "next start -p 9002",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "docker:build": "docker build -t anime-logger .",
+    "docker:run": "docker run -p 9002:9002 --env-file .env.local anime-logger",
+    "docker:compose": "docker-compose up -d",
+    "setup": "chmod +x setup.sh && ./setup.sh"
   },
   "dependencies": {
     "@genkit-ai/core": "^1.20.0",
