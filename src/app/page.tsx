@@ -6,6 +6,7 @@ import { WelcomeSection, ModernStatsCards } from '@/components/modern-stats-card
 import { ModernSearchFilter } from '@/components/modern-search-filter';
 import { ModernAnimeCards } from '@/components/modern-anime-cards';
 import { motion } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
 
 interface FilterOptions {
   status: string[];
@@ -33,6 +34,7 @@ interface Anime {
 }
 
 export default function Home() {
+  const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [animeList, setAnimeList] = useState<Anime[]>([]);
   const [loading, setLoading] = useState(true);
@@ -143,12 +145,22 @@ export default function Home() {
 
   const handleDelete = async (id: string) => {
     try {
+      const anime = animeList.find(a => a.id === id);
       const response = await fetch(`/api/anime/${id}`, { method: 'DELETE' });
       if (response.ok) {
         setAnimeList(prev => prev.filter(anime => anime.id !== id));
+        toast({
+          title: "Anime Deleted",
+          description: `${anime?.title || 'Anime'} has been removed from your list`,
+        });
       }
     } catch (error) {
       console.error('Error deleting anime:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete anime. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -167,9 +179,47 @@ export default function Home() {
         setAnimeList(prev => prev.map(a => 
           a.id === id ? { ...a, favorite: !a.favorite } : a
         ));
+        toast({
+          title: !anime.favorite ? "Added to Favorites" : "Removed from Favorites",
+          description: `${anime.title} has been ${!anime.favorite ? 'added to' : 'removed from'} your favorites`,
+        });
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorite status. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddAnime = async (animeData: any) => {
+    try {
+      const response = await fetch('/api/anime', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(animeData)
+      });
+
+      if (response.ok) {
+        const newAnime = await response.json();
+        setAnimeList(prev => [newAnime, ...prev]);
+        toast({
+          title: "Anime Added Successfully!",
+          description: `${animeData.title} has been added to your watchlist`,
+        });
+      } else {
+        throw new Error('Failed to add anime');
+      }
+    } catch (error) {
+      console.error('Error adding anime:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add anime. Please try again.",
+        variant: "destructive",
+      });
+      throw error; // Re-throw untuk ditangani oleh modal
     }
   };
 
@@ -346,6 +396,7 @@ export default function Home() {
     <MainLayout 
       currentPage={currentPage}
       onPageChange={setCurrentPage}
+      onAddAnime={handleAddAnime}
     >
       {renderCurrentPage()}
     </MainLayout>

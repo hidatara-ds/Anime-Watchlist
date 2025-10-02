@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { SidebarNavigation } from './sidebar-navigation';
 import { AiChatBubble } from './ai-chat-bubble';
 import { FloatingActionButton, ChatFloatingButton } from './floating-action-button';
+import { AddAnimeModal } from './add-anime-modal';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ interface MainLayoutProps {
   onPageChange?: (page: string) => void;
   rightPanel?: React.ReactNode;
   showRightPanel?: boolean;
+  onAddAnime?: (anime: any) => Promise<void>;
 }
 
 export function MainLayout({ 
@@ -19,18 +21,26 @@ export function MainLayout({
   currentPage = 'dashboard',
   onPageChange,
   rightPanel,
-  showRightPanel = false
+  showRightPanel = false,
+  onAddAnime
 }: MainLayoutProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isAddAnimeModalOpen, setIsAddAnimeModalOpen] = useState(false);
 
   const handleOpenChat = () => {
     setIsChatOpen(true);
   };
 
   const handleAddAnime = () => {
-    // TODO: Implement add anime modal
-    console.log('Add anime clicked');
+    setIsAddAnimeModalOpen(true);
+  };
+
+  const handleAddAnimeSubmit = async (animeData: any) => {
+    if (onAddAnime) {
+      await onAddAnime(animeData);
+    }
+    setIsAddAnimeModalOpen(false);
   };
 
   const handleOpenStats = () => {
@@ -96,6 +106,13 @@ export function MainLayout({
           position="floating"
         />
       )}
+
+      {/* Add Anime Modal */}
+      <AddAnimeModal
+        isOpen={isAddAnimeModalOpen}
+        onClose={() => setIsAddAnimeModalOpen(false)}
+        onAdd={handleAddAnimeSubmit}
+      />
 
       {/* Global keyboard shortcuts */}
       <div className="hidden">

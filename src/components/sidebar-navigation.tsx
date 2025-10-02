@@ -146,9 +146,8 @@ export function SidebarNavigation({ currentPage = 'dashboard', onPageChange }: S
         <Card className="glass p-4">
           <div className="flex items-center space-x-3">
             <Avatar className="w-10 h-10 ring-2 ring-[var(--accent-primary)]/20">
-              <AvatarImage src="/api/placeholder/40/40" alt="User Avatar" />
               <AvatarFallback className="bg-[var(--bg-tertiary)] text-[var(--text-primary)]">
-                U
+                <User className="w-5 h-5" />
               </AvatarFallback>
             </Avatar>
             

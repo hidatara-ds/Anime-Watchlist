@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       prisma.anime.count({ where }),
     ]);
 
-    return NextResponse.json({ data, total });
+    return NextResponse.json(data);
   } catch (error) {
     console.error('Error fetching anime:', error);
     return NextResponse.json({ error: 'Failed to fetch anime' }, { status: 500 });
