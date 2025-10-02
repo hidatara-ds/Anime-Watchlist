@@ -1,7 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
-import { AiChatBubble } from '@/components/ai-chat-bubble';
 
 export const metadata: Metadata = {
   title: 'AnimeLogger',
@@ -23,7 +22,6 @@ export default function RootLayout({
       <body className="font-body antialiased">
         {children}
         <Toaster />
-        <AiChatBubble />
       </body>
     </html>
   );
