@@ -5,7 +5,9 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 
 export const ai = genkit({
-  plugins: [googleAI()],
+  plugins: [googleAI({
+    apiKey: 'AIzaSyDjox_ON6PdUXu_D9_G5QgN5bMwkq6xVwI'
+  })],
 });
 
 // Define anime query flow
