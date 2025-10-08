@@ -10,10 +10,6 @@ services:
         value: production
       - key: GOOGLE_AI_API_KEY
         sync: false
-      - key: NEXTAUTH_URL
-        value: https://anime-watchlist.onrender.com
-      - key: NEXTAUTH_SECRET
-        generateValue: true
     healthCheckPath: /api/health
 
 databases:
