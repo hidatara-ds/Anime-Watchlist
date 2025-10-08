@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 
 export const ai = genkit({
   plugins: [googleAI({
-    apiKey: process.env.GENAPI!
+    apiKey: (process.env.GOOGLE_AI_API_KEY || process.env.GENAPI)!
   })],
 });
 
