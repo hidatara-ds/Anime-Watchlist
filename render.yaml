@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: anime-watchlist
+    env: node
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GOOGLE_AI_API_KEY
+        sync: false
+      - key: NEXTAUTH_URL
+        value: https://anime-watchlist.onrender.com
+      - key: NEXTAUTH_SECRET
+        generateValue: true
+    healthCheckPath: /api/health
+
+databases:
+  - name: anime-db
+    plan: free
+    databaseName: anime_watchlist
+    user: anime_user
