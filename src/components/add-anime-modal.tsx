@@ -65,6 +65,33 @@ export function AddAnimeModal({ isOpen, onClose, onAdd }: AddAnimeModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string>('');
+
+  const handleImageSelect = async (file: File | null) => {
+    if (!file) return;
+    // Guard: limit ~1.5MB to keep JSON body small
+    const MAX_BYTES = 1.5 * 1024 * 1024;
+    if (file.size > MAX_BYTES) {
+      alert('Image too large. Please choose an image under 1.5 MB.');
+      return;
+    }
+
+    const toDataUrl = (f: File) => new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(f);
+    });
+
+    try {
+      const dataUrl = await toDataUrl(file);
+      setFormData(prev => ({ ...prev, coverUrl: dataUrl }));
+      setImagePreview(dataUrl);
+    } catch (err) {
+      console.error('Failed to load image:', err);
+      alert('Failed to load image. Please try a different file.');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,6 +139,7 @@ export function AddAnimeModal({ isOpen, onClose, onAdd }: AddAnimeModalProps) {
         title: query,
         // You could set default episodes, cover URL etc. from API here
       }));
+      // Do not overwrite selected cover image
     } catch (error) {
       console.error('Error searching anime:', error);
     } finally {
@@ -308,17 +336,30 @@ export function AddAnimeModal({ isOpen, onClose, onAdd }: AddAnimeModalProps) {
 
                   {/* Cover URL */}
                   <div className="space-y-2">
-                    <Label htmlFor="coverUrl" className="text-sm font-medium text-[var(--text-primary)]">
-                      Cover Image URL (Optional)
+                    <Label htmlFor="coverFile" className="text-sm font-medium text-[var(--text-primary)]">
+                      Cover Image (Upload from device)
                     </Label>
                     <Input
-                      id="coverUrl"
-                      type="url"
-                      value={formData.coverUrl}
-                      onChange={(e) => setFormData(prev => ({ ...prev, coverUrl: e.target.value }))}
-                      placeholder="https://example.com/anime-cover.jpg"
-                      className="bg-[var(--bg-tertiary)] border-[var(--border-color)] focus:border-[var(--accent-primary)]"
+                      id="coverFile"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageSelect(e.target.files?.[0] || null)}
+                      className="bg-[var(--bg-tertiary)] border-[var(--border-color)] focus:border-[var(--accent-primary)] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:bg-[var(--bg-secondary)] file:text-[var(--text-secondary)] hover:file:bg-[var(--bg-hover)]"
                     />
+                    {imagePreview && (
+                      <div className="mt-2 flex items-center space-x-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={imagePreview} alt="Cover preview" className="h-20 w-14 object-cover rounded-md border border-[var(--border-color)]" />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => { setFormData(prev => ({ ...prev, coverUrl: '' })); setImagePreview(''); }}
+                          className="border-[var(--border-color)]"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Notes */}
