@@ -41,7 +41,7 @@ interface AnimeFormData {
   rating: number;
   notes?: string;
   favorite: boolean;
-  coverUrl?: string;
+  coverFile?: File | null;
 }
 
 const statusOptions = [
@@ -75,18 +75,10 @@ export function AddAnimeModal({ isOpen, onClose, onAdd }: AddAnimeModalProps) {
       alert('Image too large. Please choose an image under 1.5 MB.');
       return;
     }
-
-    const toDataUrl = (f: File) => new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(f);
-    });
-
     try {
-      const dataUrl = await toDataUrl(file);
-      setFormData(prev => ({ ...prev, coverUrl: dataUrl }));
-      setImagePreview(dataUrl);
+      const objectUrl = URL.createObjectURL(file);
+      setFormData(prev => ({ ...prev, coverFile: file }));
+      setImagePreview(objectUrl);
     } catch (err) {
       console.error('Failed to load image:', err);
       alert('Failed to load image. Please try a different file.');
@@ -353,7 +345,7 @@ export function AddAnimeModal({ isOpen, onClose, onAdd }: AddAnimeModalProps) {
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => { setFormData(prev => ({ ...prev, coverUrl: '' })); setImagePreview(''); }}
+                          onClick={() => { setFormData(prev => ({ ...prev, coverFile: null })); setImagePreview(''); }}
                           className="border-[var(--border-color)]"
                         >
                           Remove

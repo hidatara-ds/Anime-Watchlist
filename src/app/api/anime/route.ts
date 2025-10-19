@@ -30,6 +30,18 @@ export async function GET(request: NextRequest) {
         orderBy: { [sort]: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
+        select: {
+          id: true,
+          title: true,
+          episodes: true,
+          status: true,
+          rating: true,
+          notes: true,
+          favorite: true,
+          createdAt: true,
+          updatedAt: true,
+          // coverImage omitted to keep payload small
+        },
       }),
       prisma.anime.count({ where }),
     ]);
@@ -43,22 +55,48 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { title, coverUrl, episodes, status, rating, notes, favorite } = body;
-
-    if (!title || title.trim() === '') {
+    const form = await request.formData();
+    const title = String(form.get('title') || '').trim();
+    if (!title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    }
+
+    const episodes = Number(form.get('episodes') || 0) || 0;
+    const status = (form.get('status') as Prisma.AnimeStatus) || 'PLAN';
+    const rating = Number(form.get('rating') || 0) || 0;
+    const notes = (form.get('notes') as string) || null;
+    const favorite = String(form.get('favorite') || 'false') === 'true';
+
+    const file = form.get('cover') as File | null;
+    let coverImage: Buffer | null = null;
+    let coverImageType: string | null = null;
+    if (file && file.size > 0) {
+      const arrayBuffer = await file.arrayBuffer();
+      coverImage = Buffer.from(arrayBuffer);
+      coverImageType = file.type || 'image/jpeg';
     }
 
     const anime = await prisma.anime.create({
       data: {
-        title: title.trim(),
-        coverUrl: coverUrl || null,
-        episodes: episodes || 0,
-        status: status || 'PLAN',
-        rating: rating || 0,
-        notes: notes || null,
-        favorite: favorite || false,
+        title,
+        episodes,
+        status,
+        rating,
+        notes,
+        favorite,
+        coverImage: coverImage ?? undefined,
+        coverImageType: coverImageType ?? undefined,
+      },
+      select: {
+        id: true,
+        title: true,
+        episodes: true,
+        status: true,
+        rating: true,
+        notes: true,
+        favorite: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 

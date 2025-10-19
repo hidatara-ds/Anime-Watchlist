@@ -10,7 +10,8 @@ generator client {
 model Anime {
   id        String      @id @default(cuid())
   title     String
-  coverUrl  String?
+  coverImage Bytes?
+  coverImageType String?
   episodes  Int         @default(0)
   status    AnimeStatus @default(PLAN)
   rating    Int         @default(0)

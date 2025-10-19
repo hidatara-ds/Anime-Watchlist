@@ -60,6 +60,8 @@ export default function Home() {
           const data = await response.json();
           setAnimeList(data.map((anime: any) => ({
             ...anime,
+            // Construct image URL endpoint; image may or may not exist
+            coverUrl: `/api/anime/${anime.id}`,
             createdAt: new Date(anime.createdAt),
             updatedAt: new Date(anime.updatedAt)
           })));
@@ -196,15 +198,23 @@ export default function Home() {
 
   const handleAddAnime = async (animeData: any) => {
     try {
+      const form = new FormData();
+      form.set('title', animeData.title);
+      form.set('episodes', String(animeData.episodes ?? 0));
+      form.set('status', animeData.status ?? 'PLAN');
+      form.set('rating', String(animeData.rating ?? 0));
+      if (animeData.notes) form.set('notes', animeData.notes);
+      form.set('favorite', String(animeData.favorite ?? false));
+      if (animeData.coverFile) form.set('cover', animeData.coverFile);
+
       const response = await fetch('/api/anime', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(animeData)
+        body: form,
       });
 
       if (response.ok) {
         const newAnime = await response.json();
-        setAnimeList(prev => [newAnime, ...prev]);
+        setAnimeList(prev => [{ ...newAnime, coverUrl: `/api/anime/${newAnime.id}` }, ...prev]);
         toast({
           title: "Anime Added Successfully!",
           description: `${animeData.title} has been added to your watchlist`,

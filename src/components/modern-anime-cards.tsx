@@ -200,6 +200,7 @@ function AnimeCard({ anime, viewMode, onEdit, onDelete, onToggleFavorite }: Anim
         {/* Cover Image */}
         <div className="relative aspect-[3/4] bg-[var(--bg-tertiary)] overflow-hidden">
           {anime.coverUrl && !imageError ? (
+          {anime.coverUrl && !imageError ? (
             <Image
               src={anime.coverUrl}
               alt={anime.title}
